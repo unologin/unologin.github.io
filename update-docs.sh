@@ -1,7 +1,7 @@
 #!/bin/bash
 
 projects=(\
-  "node-api" \
+  "node-sdk" \
   "web-sdk" \
   "next-sdk"
 )
