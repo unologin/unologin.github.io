@@ -12,3 +12,5 @@ for project in ${projects[@]}; do
     "https://github.com/unologin/$project.git/trunk/docs" \
     "$project"
 done
+
+cp ../public-api/README.md ./public-api-doc.md

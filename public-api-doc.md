@@ -1,24 +1,21 @@
-# HTTP API (v1.unolog.in)
+# v1.unolog.in HTTP API
 
 ## General
-If you are using [one of our SDKs](https://unolog.in/packages#sdks), follow the SKD's documentation first, as you will probably not need to directly interface with the HTTP-API.
 
-The following examples will be using [curl](https://curl.se/) to be as general as possible. 
+The following examples will be using [curl](https://curl.se/) to be as general as possible. If you are using [one of our SDKs](https://unolog.in/packages#sdks), follow the SKD's documentation first, as you will probably not need to directly interface with the HTTP-API.
 
 ## Error handling
 
 The API uses HTTP status codes for indicating whether a request was successful. Any ```2XX```-code indicates success, while any other code will indicate failure. 
 
-Here's an exemplary failure:
+Here's an examplary failure:
 
 ```bash
-$ curl -i 'https://v1.unolog.in/util/test-api-key'
+$ curl -i 'https://v1.unolog.in/util/test-API-key'
 ```
 Response:
 ```
 HTTP/2 401 
-```
-```json
 {"code":401,"msg":"no API-Key provided","data":null}
 ```
 The failure response structure will always be the same: 
@@ -33,7 +30,7 @@ Note that the response code is duplicated in the body.
 
 ## Authentication
 
-To authenticate with the API, populate the ```X-API-KEY``` header with your API key in every request. You can obtain an API key in your app dashboard in the "API Access" tab.
+To authenticate with the API, populate the ```X-API-KEY``` header with your API key in every request. You can obtain an API key in your app settings in the "access" tab.
 
 The following examples may omit the API key for brevity. Be sure to **provide your API key with every request**.
 
@@ -137,12 +134,175 @@ The API uses JSON schemas in order to define and verify the shape of your reques
 | response body  | Describes what is returned by the API in the response body when making a GET request to a single resource. When reading a collection of resources, the schema will look like this: ```{ results: ResponseSchema[], total: number }``` where each item in the `results` array will follow the response schema and `total` will contain the total amount of resources that match your query (as the length of results may be subject to a limit).   |
 
 ### Resource /apps/:appId/users
+<details>
+  <summary>show query schema</summary>
+  
+  ```json
+  {
+    "additionalProperties": false,
+    "type": "object",
+    "properties": {
+      "appId": {
+        "ObjectId": true,
+        "type": "string"
+      },
+      "asuId": {
+        "ObjectId": true,
+        "type": "string"
+      },
+      "createdAt": {
+        "anyOf": [
+          {
+            "Date": true,
+            "type": "string"
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "$gt": {
+                "Date": true,
+                "type": "string"
+              },
+              "$lt": {
+                "Date": true,
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "limit": {
+        "minimum": 1,
+        "default": 25,
+        "type": "integer"
+      },
+      "start": {
+        "minimum": 0,
+        "default": 0,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "appId"
+    ]
+  }
+  ```
 
-Query schema: [show query schema](https://v1.unolog.in/schemas/apps/:appId/users/query)
+</details>
 
-Response schema: [show response schema](https://v1.unolog.in/schemas/apps/:appId/users/read)
+<details>
+  <summary>show response schema</summary>
+  
+  ```json
+  {
+  "additionalProperties": false,
+  "type": "object",
+  "properties": {
+    "_id": {
+      "ObjectId": true,
+      "type": "string"
+    },
+    "createdAt": {
+      "Date": true,
+      "type": "string"
+    },
+    "appId": {
+      "ObjectId": true,
+      "type": "string"
+    },
+    "requiredFields": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "enum": [
+          "email",
+          "mobile",
+          "mobileParsed",
+          "fname",
+          "mname",
+          "lname",
+          "avatar",
+          "country",
+          "company"
+        ],
+        "type": "string"
+      }
+    },
+    "profile": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "email": {
+          "email": true,
+          "format": "email",
+          "type": "string"
+        },
+        "mobile": {
+          "mobile": true,
+          "type": "string"
+        },
+        "mobileParsed": {
+          "mobileParsed": true,
+          "type": "string"
+        },
+        "fname": {
+          "fname": true,
+          "type": "string"
+        },
+        "mname": {
+          "mname": true,
+          "type": "string"
+        },
+        "lname": {
+          "lname": true,
+          "type": "string"
+        },
+        "avatar": {
+          "$id": "#/url",
+          "format": "uri",
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "company": {
+          "minLength": 1,
+          "maxLength": 30,
+          "type": "string"
+        }
+      }
+    },
+    "userClasses": {
+      "type": "array",
+      "items": {
+        "$id": "#/userClassName",
+        "pattern": "[a-zA-Z_][0-9a-zA-Z_]*",
+        "type": "string"
+      }
+    },
+    "codes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "_id",
+    "createdAt",
+    "appId",
+    "userId",
+    "profileId",
+    "requiredFields",
+    "profile",
+    "userClasses"
+  ]
+}
 
+  ```
 
+</details>
 This resource represents all users that have signed up for your app through unolog.in. 
 
 Each entry will come with a `profile` key, which is an object containing the information the user has decided to share during signup. Consult the response schema for more detailed information.
