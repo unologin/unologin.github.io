@@ -1,21 +1,24 @@
-# v1.unolog.in HTTP API
+# HTTP API (v1.unolog.in)
 
 ## General
+If you are using [one of our SDKs](https://unolog.in/developers#packages), follow the SKD's documentation first, as you will probably not need to directly interface with the HTTP-API.
 
-The following examples will be using [curl](https://curl.se/) to be as general as possible. If you are using [one of our SDKs](https://unolog.in/packages#sdks), follow the SKD's documentation first, as you will probably not need to directly interface with the HTTP-API.
+The following examples will be using [curl](https://curl.se/) to be as general as possible. 
 
 ## Error handling
 
 The API uses HTTP status codes for indicating whether a request was successful. Any ```2XX```-code indicates success, while any other code will indicate failure. 
 
-Here's an examplary failure:
+Here's an exemplary failure:
 
 ```bash
-$ curl -i 'https://v1.unolog.in/util/test-API-key'
+$ curl -i 'https://v1.unolog.in/util/test-api-key'
 ```
 Response:
 ```
 HTTP/2 401 
+```
+```json
 {"code":401,"msg":"no API-Key provided","data":null}
 ```
 The failure response structure will always be the same: 
@@ -30,7 +33,13 @@ Note that the response code is duplicated in the body.
 
 ## Authentication
 
-To authenticate with the API, populate the ```X-API-KEY``` header with your API key in every request. You can obtain an API key in your app settings in the "access" tab.
+To authenticate with the API, populate the ```X-API-KEY``` header with your API key in every request. You can obtain an API key in your app dashboard in the "API Access" tab.
+
+To follow along with the examples, store your API key in a variable:
+
+```bash
+$ UNOLOGIN_API_KEY=my-api-key
+```
 
 The following examples may omit the API key for brevity. Be sure to **provide your API key with every request**.
 
@@ -41,7 +50,7 @@ $ curl "https://v1.unolog.in/util/test-api-key" \
     -H "X-API-KEY: ${UNOLOGIN_API_KEY}"
 ```
 
-If everything is OK, the response will look like this:  
+If the request is correct, the response will look like this:  
 
 ```json
 {"appId":"your-app-id"}
@@ -54,8 +63,9 @@ Otherwise, you will get an error response.
 
 To verify a login token through the API, use any of the following endpoints.
 
+The variable ```APP_LOGIN_TOKEN``` can be read from the users ```_uno_appLoginToken``` cookie.
 
-When authenticating users through the API, **any status code that is not ```200``` should be treated as failed authentication!** 
+Note that when authenticating users through the API, **any status code that is not ```200``` should be treated as failed authentication!** 
 
 ### Simple authentication
 
@@ -134,175 +144,12 @@ The API uses JSON schemas in order to define and verify the shape of your reques
 | response body  | Describes what is returned by the API in the response body when making a GET request to a single resource. When reading a collection of resources, the schema will look like this: ```{ results: ResponseSchema[], total: number }``` where each item in the `results` array will follow the response schema and `total` will contain the total amount of resources that match your query (as the length of results may be subject to a limit).   |
 
 ### Resource /apps/:appId/users
-<details>
-  <summary>show query schema</summary>
-  
-  ```json
-  {
-    "additionalProperties": false,
-    "type": "object",
-    "properties": {
-      "appId": {
-        "ObjectId": true,
-        "type": "string"
-      },
-      "asuId": {
-        "ObjectId": true,
-        "type": "string"
-      },
-      "createdAt": {
-        "anyOf": [
-          {
-            "Date": true,
-            "type": "string"
-          },
-          {
-            "additionalProperties": false,
-            "type": "object",
-            "properties": {
-              "$gt": {
-                "Date": true,
-                "type": "string"
-              },
-              "$lt": {
-                "Date": true,
-                "type": "string"
-              }
-            }
-          }
-        ]
-      },
-      "limit": {
-        "minimum": 1,
-        "default": 25,
-        "type": "integer"
-      },
-      "start": {
-        "minimum": 0,
-        "default": 0,
-        "type": "integer"
-      }
-    },
-    "required": [
-      "appId"
-    ]
-  }
-  ```
 
-</details>
+Query schema: [show query schema](https://v1.unolog.in/schemas/apps/:appId/users/query)
 
-<details>
-  <summary>show response schema</summary>
-  
-  ```json
-  {
-  "additionalProperties": false,
-  "type": "object",
-  "properties": {
-    "_id": {
-      "ObjectId": true,
-      "type": "string"
-    },
-    "createdAt": {
-      "Date": true,
-      "type": "string"
-    },
-    "appId": {
-      "ObjectId": true,
-      "type": "string"
-    },
-    "requiredFields": {
-      "default": [],
-      "type": "array",
-      "items": {
-        "enum": [
-          "email",
-          "mobile",
-          "mobileParsed",
-          "fname",
-          "mname",
-          "lname",
-          "avatar",
-          "country",
-          "company"
-        ],
-        "type": "string"
-      }
-    },
-    "profile": {
-      "additionalProperties": false,
-      "type": "object",
-      "properties": {
-        "email": {
-          "email": true,
-          "format": "email",
-          "type": "string"
-        },
-        "mobile": {
-          "mobile": true,
-          "type": "string"
-        },
-        "mobileParsed": {
-          "mobileParsed": true,
-          "type": "string"
-        },
-        "fname": {
-          "fname": true,
-          "type": "string"
-        },
-        "mname": {
-          "mname": true,
-          "type": "string"
-        },
-        "lname": {
-          "lname": true,
-          "type": "string"
-        },
-        "avatar": {
-          "$id": "#/url",
-          "format": "uri",
-          "type": "string"
-        },
-        "country": {
-          "type": "string"
-        },
-        "company": {
-          "minLength": 1,
-          "maxLength": 30,
-          "type": "string"
-        }
-      }
-    },
-    "userClasses": {
-      "type": "array",
-      "items": {
-        "$id": "#/userClassName",
-        "pattern": "[a-zA-Z_][0-9a-zA-Z_]*",
-        "type": "string"
-      }
-    },
-    "codes": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    }
-  },
-  "required": [
-    "_id",
-    "createdAt",
-    "appId",
-    "userId",
-    "profileId",
-    "requiredFields",
-    "profile",
-    "userClasses"
-  ]
-}
+Response schema: [show response schema](https://v1.unolog.in/schemas/apps/:appId/users/read)
 
-  ```
 
-</details>
 This resource represents all users that have signed up for your app through unolog.in. 
 
 Each entry will come with a `profile` key, which is an object containing the information the user has decided to share during signup. Consult the response schema for more detailed information.
