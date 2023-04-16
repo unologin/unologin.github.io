@@ -80,8 +80,8 @@ Successful response:
 
 ```json
 {
+  "id": "510d188417d34a000804c493",
   "userClasses": [ "users_default" ],
-  "asuId": "510d188417d34a000804c493",
   "r": 3600,
   "t": "alt",
   "iat": 1645002083,
@@ -113,8 +113,8 @@ Response:
 ```json
 [
   {
+    "id": "510d188417d34a000804c493",
     "userClasses": [ "users_default" ],
-    "asuId": "510d188417d34a000804c493",
     "r": 3600,
     "t": "alt",
     "iat": 1645002083,
@@ -161,8 +161,8 @@ Examples:
 ```bash
 $ # to get a list of users as { results: User[], total: number }
 $ curl -G "https://v1.unolog.in/apps/${APPID}/users"
-$ # to get a specific user by their asuId
-$ curl -G "https://v1.unolog.in/apps/${APPID}/users/${asuId}"
+$ # to get a specific user by their id
+$ curl -G "https://v1.unolog.in/apps/${APPID}/users/${USER_ID}"
 ```
 
 ### Resource /public-keys
